@@ -23,7 +23,7 @@ class Board
   end
 
   def slide_piece(color, from_p, to_p)
-    piece = self[start]
+    piece = self[from_p]
     if piece == nil
       raise ArgumentError.new "That piece is empty."
     elsif color != piece.color
@@ -35,8 +35,14 @@ class Board
   end
 
   def jump_piece(color, from_p, to_p)
-    piece = self[start]
-
+    piece = self[from_p]
+    if piece == nil
+      raise ArgumentError.new "That piece is empty."
+    elsif color != piece.color
+      raise ArgumentError.new "Move your own piece"
+    elsif !good_jump?(color, from_p, to_p)
+      raise ArgumentError.new "Bad jump"
+    end
     move_piece!
   end
 
@@ -51,12 +57,25 @@ class Board
     #Slide one spot
     if (from_p[0] - to_p[0]).abs != 1
       return false
-    elsif (from_p[1] - to_p[01]).abs != 1
+    elsif (from_p[1] - to_p[1]).abs != 1
       return false
     end
 
-    return ture if self[from_p].kinged
+    return true if self[from_p].kinged
     #Forward
+    return false if !forward?
+
+    true
+  end
+
+  def jumped_spot(from_p, to_p)
+    jumped = from_p
+    jumped[0] += from_p[0] -to_p[0]
+    jumped[1] += from_p[1] - to_p[1]
+    jumped
+  end
+
+  def forward?(color, from_p, to_p)
     case color
     when :black
       return false if (from_p[0] - to_p[0]) <= 0
@@ -67,6 +86,22 @@ class Board
     true
   end
 
+  def good_jump? (color, from_p, to_p)
+    #should this be bad_jump??
+    if (from_p[0] - to_p[0]).abs != 2
+      return false
+    elsif (from_p[1] - to_p[1]).abs != 2
+      return false
+    end
+
+    return false if self[jumped(from_p, to_p)].nil?
+
+    return true if self[from_p].kinged
+    #Forward
+    return false if !forward?
+
+    true
+  end
 
 
 
@@ -124,5 +159,5 @@ end
 
 new_board = Board.new
 new_board.render
-new_board.move_piece!([5,0], [4,1])
+new_board.slide_piece(:black, [5,0], [2,4])
 new_board.render
