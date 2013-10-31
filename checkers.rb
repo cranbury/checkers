@@ -1,6 +1,22 @@
 require 'debugger'
+
+class Game
+  def initialize()
+    @board = Board.new
+    @players = {
+          :black => HumanPlayer.new(:black),
+          :red => HumanPlayer.new(:red)
+                }
+    @current_player = :black
+  end
+end
+
+
 class Board
-  def initialize(new_game = true)
+  attr_accessor :rows
+
+  def initialize(new_game = true, rows = [])
+    @rows = rows
     set_up_board if new_game
   end
 
@@ -44,6 +60,7 @@ class Board
       raise ArgumentError.new "Bad jump"
     end
     move_piece!(from_p, to_p)
+    self[jumped_spot(from_p, to_p)] = nil
   end
 
   def move_piece!(from_p, to_p)
@@ -69,10 +86,7 @@ class Board
   end
 
   def jumped_spot(from_p, to_p)
-    jumped = from_p
-    jumped[0] += from_p[0] -to_p[0]
-    jumped[1] += from_p[1] - to_p[1]
-    jumped
+    [(from_p[0] + to_p[0]) / 2, (from_p[1] + to_p[1]) / 2]
   end
 
   def forward?(color, from_p, to_p)
@@ -129,6 +143,10 @@ class Board
     pos
     @rows[i][j] = piece
   end
+
+  def rows
+    @rows
+  end
 end
 
 class Piece
@@ -161,3 +179,4 @@ new_board.move_piece!([0, 1], [4, 1])
 new_board.render
 new_board.jump_piece(:black, [5,0], [3, 2])
 new_board.render
+
