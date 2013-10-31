@@ -47,8 +47,8 @@ end
 
 
 class Board
-  SLIDE_SET = [[-1, -1], [-1, 1], [], []]
-  JUMPSET =
+  SLIDE_SET = [[-1, -1], [-1, 1], [1, -1], [1, 1]]
+  JUMPSET = [[-2, -2], [-2, 2], [2, -2], [2, 2]]
 
   attr_accessor :rows
 
@@ -60,6 +60,26 @@ class Board
   def find_pieces(my_color)
     pieces = @rows.flatten.compact
     pieces.select {|p| p.color == my_color}
+  end
+
+  def possible_slides(pos)
+    pos_slides = Array.new(4)
+    4.times do |val, i|
+      pos_slides[i][0] = pos[0] + SLIDESET[i][0]
+      pos_slides[i][0] = pos[0] + SLIDESET[i][0]
+    end
+
+    pos_slides
+  end
+
+  def possible_jumps(pos)
+    pos_slides = Array.new(4)
+    4.times do |val, i|
+      pos_slides[i][0] = pos[0] + JUMPSET[i][0]
+      pos_slides[i][0] = pos[0] + JUMPSET[i][0]
+    end
+
+    pos_slides
   end
 
   def no_moves?
@@ -123,13 +143,25 @@ class Board
   end
 
   def perform_moves!(move_sequence)
+    #move_sequence.flatten!
     until move_sequence.length == 1
       from_p = move_sequence.shift
       to_p = move_sequence.last
+      #debugger
       piece = self[from_p]
       self[to_p] = piece
       self[from_p] = nil
       piece.pos = to_p
+
+      unless self[to_p].nil?
+        if self[to_p].color == :black && to_p[0] == 0
+          self[to_p].promote_king
+        elsif self[to_p].color == :red && to_p[0] == 7
+          self[to_p].promote_king
+        end
+        puts "color: #{self[to_p].color}"
+        puts "row: #{to_p[0]}"
+      end
     end
   end
 
@@ -203,7 +235,8 @@ class Board
   def []=(pos, piece)
     ##raise "invalid pos" unless valid_pos?(pos)
     i, j = pos
-    pos
+
+
     @rows[i][j] = piece
   end
 
@@ -222,23 +255,22 @@ class Piece
     board.add_piece(self, pos)
   end
 
-  def pos
-    if self[to_p].color == :black && to_p[0] == 0
-      self[to_p].kinged = true
-    elsif self[to_p].color == :red && to_p[0] == 7
-      self[to_p].kinged = true
-    end
-
-    pos
-  end
-
   def color
     @color
   end
 
+  def kinged?
+    @kinged
+  end
+
+  def promote_king
+    @kinged = true
+    puts "Promotion!"
+  end
+
   def render
     rend = (color == :black) ? '|♳|' : '|☻|'.colorize(:red)
-    rend = (color == :black) ? '|♴|' : '|⚾|'.colorize(:red)if @kinged
+    rend = (color == :black) ? '|☃|' : '|⚾|'.colorize(:red)if kinged?
     rend
   end
 
@@ -249,12 +281,13 @@ end
 new_board = Board.new
 new_board.render
 new_board.perform_moves!([[1, 4], [4, 1]])
-new_board.perform_moves!([[0, 6], [4, 5]])
+new_board.perform_moves!([[0, 5], [4, 5]])
 
 new_board.render
-new_board.perform_jump(:black, [[5,0], [3, 2], [1,4]])
+new_board.perform_jump(:black, [[5, 0], [3, 2], [1,4]])
 new_board.render
-new_board.perform_slide(:black, [[1,4], [0,6]])
+new_board.perform_slide(:black, [[1, 4], [0, 5]])
 new_board.render
-# p new_board.find_pieces(:black)
+#new_board.rows[0][5].promote_king
+new_board.render
 
