@@ -54,6 +54,11 @@ class Board
     set_up_board if new_game
   end
 
+  def find_pieces(my_color)
+    pieces = @rows.flatten.compact!
+    pieces.select! {|p| p.color == my_color}
+  end
+
   def no_moves
 
     false
@@ -221,16 +226,13 @@ class Piece
 
 end
 
-class Game
-end
 
-class User
-end
 
-new_board = Board.new
-new_board.render
-new_board.move_piece!([0, 1], [4, 1])
-new_board.render
-new_board.jump_piece(:black, [5,0], [3, 2])
-new_board.render
+# new_board = Board.new
+# new_board.render
+# new_board.move_piece!([0, 1], [4, 1])
+# new_board.render
+# new_board.jump_piece(:black, [5,0], [3, 2])
+# new_board.render
+# p new_board.find_pieces(:black)
 
