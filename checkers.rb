@@ -73,17 +73,21 @@ class Board
   end
 
   def possible_jumps(pos)
-    pos_slides = Array.new(4)
+    pos_jumps = Array.new(4)
     4.times do |val, i|
-      pos_slides[i][0] = pos[0] + JUMPSET[i][0]
-      pos_slides[i][0] = pos[0] + JUMPSET[i][0]
+      pos_jumps[i][0] = pos[0] + JUMPSET[i][0]
+      pos_jumps[i][0] = pos[0] + JUMPSET[i][0]
     end
 
-    pos_slides
+    pos_jumps
   end
 
-  def no_moves?
+  def no_moves?(color) ###########NOT DONE.
     dummy_board = clone
+    my_pieces = find_pieces(color)
+    all_moves = []
+    my_pieces.each do |piece|
+
     !(jumps_available?(dummy_board) || result = slides_available?(dummy_board))
   end
 
