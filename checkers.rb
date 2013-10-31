@@ -1,4 +1,8 @@
+# encoding: UTF-8
+
 require 'debugger'
+require 'colorize'
+require 'yaml'
 
 class Game
   def initialize()
@@ -9,6 +13,36 @@ class Game
                 }
     @current_player = :black
   end
+
+  def play
+
+    until board.no_moves?(@current_player)
+      @players[current_player].play_turn(@board)
+      @current_player = (@current_player == :red) ? :black : :red
+    end
+  end
+end
+
+class HumanPlayer
+  def initialize(color)
+    @color = color
+  end
+
+  def play_turn(board)
+    puts board.render
+    puts "Current player: #{@color}"
+    puts "Starting row:"
+    to_p, from_p = [], []
+    to_p << gets.chomp
+    puts "Starting col:"
+    to_p << gets.chomp
+    puts "Ending row:"
+    from_p << gets.chomp
+    puts "Ending col:"
+    from_p << gets.chomp
+    [from_p, to_p]
+  end
+
 end
 
 
@@ -19,6 +53,17 @@ class Board
     @rows = rows
     set_up_board if new_game
   end
+
+  def no_moves
+
+    false
+  end
+
+  def clone
+    serialized_board = self.to_yaml
+    YAML::load(serialized_board)
+  end
+
 
   def add_piece(piece, pos)
     self[pos] = piece
@@ -65,9 +110,14 @@ class Board
 
   def move_piece!(from_p, to_p)
     piece = self[from_p]
-    self[to_p] = [piece]
+    self[to_p] = piece
     self[from_p] = nil
     piece.pos = to_p
+    if self[to_p].color == :black && to_p[0] == 0
+      self[to_p].kinged = true
+    elsif self[to_p].color == :red && to_p[0] == 7
+      self[to_p].kinged = true
+    end
   end
 
   def good_slide?(color, from_p, to_p)
@@ -159,9 +209,13 @@ class Piece
     board.add_piece(self, pos)
   end
 
+  def color
+    @color
+  end
+
   def render
-    rend = (color == :black) ? '|b|' : '|r|'
-    rend.upcase if @kinged
+    rend = (color == :black) ? '|♳|' : '|☻|'.colorize(:red)
+    rend = (color == :black) ? '|♴|' : '|⚾|'.colorize(:red)if @kinged
     rend
   end
 
