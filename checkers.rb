@@ -47,6 +47,9 @@ end
 
 
 class Board
+  SLIDE_SET = [[-1, -1], [-1, 1], [], []]
+  JUMPSET =
+
   attr_accessor :rows
 
   def initialize(new_game = true, rows = [])
@@ -55,20 +58,19 @@ class Board
   end
 
   def find_pieces(my_color)
-    pieces = @rows.flatten.compact!
-    pieces.select! {|p| p.color == my_color}
+    pieces = @rows.flatten.compact
+    pieces.select {|p| p.color == my_color}
   end
 
-  def no_moves
-
-    false
+  def no_moves?
+    dummy_board = clone
+    !(jumps_available?(dummy_board) || result = slides_available?(dummy_board))
   end
 
   def clone
     serialized_board = self.to_yaml
     YAML::load(serialized_board)
   end
-
 
   def add_piece(piece, pos)
     self[pos] = piece
@@ -88,7 +90,8 @@ class Board
     end
   end
 
-  def slide_piece(color, from_p, to_p)
+  def perform_slide(color, sequence)
+    from_p, to_p = sequence
     piece = self[from_p]
     if piece == nil
       raise ArgumentError.new "That piece is empty."
@@ -97,31 +100,36 @@ class Board
     elsif !good_slide?(color, from_p, to_p)
       raise ArgumentError.new "Bad slide"
     end
-    move_piece!
+    perform_moves! [from_p, to_p]
   end
 
-  def jump_piece(color, from_p, to_p)
-    piece = self[from_p]
-    if piece == nil
-      raise ArgumentError.new "That piece is empty."
-    elsif color != piece.color
-      raise ArgumentError.new "Move your own piece"
-    elsif !good_jump?(color, from_p, to_p)
-      raise ArgumentError.new "Bad jump"
+  def perform_jump(color, sequence)
+
+      sequence.each_with_index do |val, i|
+        next if i == (sequence.length - 1)
+      piece = self[sequence[i]]
+      if piece == nil
+        raise ArgumentError.new "That piece is empty."
+      elsif color != piece.color
+        raise ArgumentError.new "Move your own piece"
+      elsif !good_jump?(color, sequence[i], sequence[i + 1])
+        raise ArgumentError.new "Bad jump"
+      end
+      perform_moves!([sequence[i], sequence[i + 1]])
+      if i == 0
+        self[jumped_spot(sequence[i], sequence[i + 1])] = nil
+      end
     end
-    move_piece!(from_p, to_p)
-    self[jumped_spot(from_p, to_p)] = nil
   end
 
-  def move_piece!(from_p, to_p)
-    piece = self[from_p]
-    self[to_p] = piece
-    self[from_p] = nil
-    piece.pos = to_p
-    if self[to_p].color == :black && to_p[0] == 0
-      self[to_p].kinged = true
-    elsif self[to_p].color == :red && to_p[0] == 7
-      self[to_p].kinged = true
+  def perform_moves!(move_sequence)
+    until move_sequence.length == 1
+      from_p = move_sequence.shift
+      to_p = move_sequence.last
+      piece = self[from_p]
+      self[to_p] = piece
+      self[from_p] = nil
+      piece.pos = to_p
     end
   end
 
@@ -136,7 +144,7 @@ class Board
     return true if self[from_p].kinged
     #Forward
     return false if !forward?(color, from_p, to_p)
-
+    ##refactor by combining
     true
   end
 
@@ -214,6 +222,16 @@ class Piece
     board.add_piece(self, pos)
   end
 
+  def pos
+    if self[to_p].color == :black && to_p[0] == 0
+      self[to_p].kinged = true
+    elsif self[to_p].color == :red && to_p[0] == 7
+      self[to_p].kinged = true
+    end
+
+    pos
+  end
+
   def color
     @color
   end
@@ -228,11 +246,15 @@ end
 
 
 
-# new_board = Board.new
-# new_board.render
-# new_board.move_piece!([0, 1], [4, 1])
-# new_board.render
-# new_board.jump_piece(:black, [5,0], [3, 2])
-# new_board.render
+new_board = Board.new
+new_board.render
+new_board.perform_moves!([[1, 4], [4, 1]])
+new_board.perform_moves!([[0, 6], [4, 5]])
+
+new_board.render
+new_board.perform_jump(:black, [[5,0], [3, 2], [1,4]])
+new_board.render
+new_board.perform_slide(:black, [[1,4], [0,6]])
+new_board.render
 # p new_board.find_pieces(:black)
 
