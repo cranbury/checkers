@@ -8,8 +8,9 @@ class Board
     self[pos] = piece
   end
 
-  def to_s
+  def render
     counter = 1
+    puts
     @rows.flatten.each do |spot|
       if spot.nil?
         print "|_|"
@@ -23,15 +24,49 @@ class Board
 
   def slide_piece(color, from_p, to_p)
     piece = self[start]
+    if piece == nil
+      raise ArgumentError.new "That piece is empty."
+    elsif color != piece.color
+      raise ArgumentError.new "Move your own piece"
+    elsif !good_slide?(color, from_p, to_p)
+      raise ArgumentError.new "Bad slide"
+    end
     move_piece!
   end
 
-  def slide_piece!(from_p, to_p)
+  def jump_piece(color, from_p, to_p)
+    piece = self[start]
+
+    move_piece!
+  end
+
+  def move_piece!(from_p, to_p)
     piece = self[from_p]
     self[to_p] = [piece]
     self[from_p] = nil
     piece.pos = to_p
   end
+
+  def good_slide?(color, from_p, to_p)
+    #Slide one spot
+    if (from_p[0] - to_p[0]).abs != 1
+      return false
+    elsif (from_p[1] - to_p[01]).abs != 1
+      return false
+    end
+
+    return ture if self[from_p].kinged
+    #Forward
+    case color
+    when :black
+      return false if (from_p[0] - to_p[0]) <= 0
+    when :red
+      return false if (from_p[0] - to_p[0]) >= 0
+    end
+
+    true
+  end
+
 
 
 
@@ -65,7 +100,7 @@ end
 
 class Piece
   attr_reader :board, :color #####
-  attr_accessor :pos######
+  attr_accessor :pos, :kinged######
 
   def initialize(color, board, pos)
     @color, @board, @pos = color, board, pos
@@ -88,6 +123,6 @@ class User
 end
 
 new_board = Board.new
-print new_board
-new_board.slide_piece!([5,0], [4,1])
-print new_board
+new_board.render
+new_board.move_piece!([5,0], [4,1])
+new_board.render
