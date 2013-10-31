@@ -43,7 +43,7 @@ class Board
     elsif !good_jump?(color, from_p, to_p)
       raise ArgumentError.new "Bad jump"
     end
-    move_piece!
+    move_piece!(from_p, to_p)
   end
 
   def move_piece!(from_p, to_p)
@@ -63,7 +63,7 @@ class Board
 
     return true if self[from_p].kinged
     #Forward
-    return false if !forward?
+    return false if !forward?(color, from_p, to_p)
 
     true
   end
@@ -94,16 +94,14 @@ class Board
       return false
     end
 
-    return false if self[jumped(from_p, to_p)].nil?
+    return false if self[jumped_spot(from_p, to_p)].nil?
 
     return true if self[from_p].kinged
     #Forward
-    return false if !forward?
+    return false if !forward?(color, from_p, to_p)
 
     true
   end
-
-
 
   def set_up_board
     @rows = Array.new(8) { Array.new(8)}
@@ -159,5 +157,7 @@ end
 
 new_board = Board.new
 new_board.render
-new_board.slide_piece(:black, [5,0], [2,4])
+new_board.move_piece!([0, 1], [4, 1])
+new_board.render
+new_board.jump_piece(:black, [5,0], [3, 2])
 new_board.render
