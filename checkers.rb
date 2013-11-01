@@ -117,6 +117,7 @@ class Board
   def perform_slide(color, sequence)
     from_p, to_p = sequence
     piece = self[from_p]
+     #REV: can refactor part of this if statement because it is used again in the next method
     if piece == nil
       raise ArgumentError.new "That piece is empty."
     elsif color != piece.color
@@ -146,6 +147,7 @@ class Board
     end
   end
 
+#REV: refactor this method. A little too long. 3 loops inside one another
   def perform_moves!(move_sequence)
     #move_sequence.flatten!
     until move_sequence.length == 1
@@ -169,6 +171,7 @@ class Board
     end
   end
 
+  #REV: A lot of true false returns in one method. Check if not king and then use foward to make more use of implicit true return.
   def good_slide?(color, from_p, to_p)
     #Slide one spot
     if (from_p[0] - to_p[0]).abs != 1
@@ -199,6 +202,7 @@ class Board
     true
   end
 
+  #REV: Similar to good_slide? refactor more. can make a method that checks the first 2 cases as a one liner using &&. it could take the 2 after as an argument so you can use the method for both good_jump? and good_slide? by replacing 2 with 1
   def good_jump? (color, from_p, to_p)
     #should this be bad_jump??
     if (from_p[0] - to_p[0]).abs != 2
